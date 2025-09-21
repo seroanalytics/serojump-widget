@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Interactive widget for serojump</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #ffffff;
+            font-family: 'Avenir', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: #000000;
+            line-height: 1.6;
+            padding: 20px;
+            font-weight: 400;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        
+        .header-logo {
+            width: 160px;
+            height: 160px;
+            margin-bottom: 1rem;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 300;
+            color: #000000;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+        
+        .header .subtitle {
+            color: #666666;
+            font-size: 1rem;
+            font-weight: 400;
+            margin-bottom: 1rem;
+        }
+        
+        .header .description {
+            color: #555555;
+            font-size: 0.95rem;
+            font-weight: 400;
+            line-height: 1.5;
+            max-width: 800px;
+            margin: 0 auto 1.5rem auto;
+            padding: 0 1rem;
+        }
+        
+        .header-links {
+            margin-top: 1rem;
+        }
+        
+        .paper-reference {
+            font-size: 0.85rem;
+            color: #666666;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+            font-style: italic;
+        }
+        
+        .paper-reference a {
+            color: #000000;
+            text-decoration: none;
+            font-weight: 500;
+            border-bottom: 1px solid #000000;
+            transition: all 0.3s ease;
+        }
+        
+        .paper-reference a:hover {
+            color: #007AFF;
+            border-bottom-color: #007AFF;
+        }
+        
+        .tool-links {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .tool-link {
+            color: #000000;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border: 1px solid #000000;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            font-family: 'Avenir', sans-serif;
+        }
+        
+        .tool-link:hover {
+            background: #000000;
+            color: #ffffff;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .separator {
+            color: #999999;
+            font-weight: 300;
+        }
+        
+        .main-container {
+            display: block;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* Control Panel */
+        .control-panel {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 1.5rem;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+        
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: #000000;
+            margin-bottom: 1.5rem;
+            text-transform: none;
+            letter-spacing: -0.01em;
+            border-bottom: 2px solid #000000;
+            padding-bottom: 0.75rem;
+        }
+        
+        .control-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .control-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+            color: #000000;
+            font-family: 'Avenir', sans-serif;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 3px;
+            background: #e5e5e5;
+            outline: none;
+            border-radius: 2px;
+            -webkit-appearance: none;
+            appearance: none;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #000000;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .value-display {
+            font-size: 0.8rem;
+            color: #000000;
+            font-family: 'Avenir', sans-serif;
+            text-align: right;
+            font-weight: 500;
+        }
+        
+        .btn {
+            background: #000000;
+            border: 2px solid #000000;
+            color: #ffffff;
+            padding: 0.875rem 2rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            font-weight: 500;
+            width: auto;
+            margin-bottom: 0.5rem;
+            font-family: 'Avenir', sans-serif;
+            letter-spacing: 0.01em;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+        
+        .btn:hover {
+            background: #ffffff;
+            color: #000000;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn:disabled {
+            background: #f5f5f5;
+            color: #999999;
+            border-color: #e5e5e5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        /* Special styling for Fit MCMC button */
+        #fit-btn {
+            background: #007AFF;
+            color: #ffffff;
+            border-color: #007AFF;
+        }
+        
+        #fit-btn:hover {
+            background: #0056b3;
+            border-color: #0056b3;
+            color: #ffffff;
+        }
+        
+        #fit-btn:disabled {
+            background: #f5f5f5;
+            color: #999999;
+            border-color: #e5e5e5;
+        }
+        
+        .btn.secondary {
+            background: #ffffff;
+            color: #000000;
+            border-color: #000000;
+        }
+        
+        .btn.secondary:hover {
+            background: #000000;
+            color: #ffffff;
+        }
+        
+        /* Visualization Area */
+        .visualization-area {
+            background: #ffffff;
+            border: 1px solid #e5e5e5;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+        
+        /* Individual Trajectories Grid */
+        .trajectories-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 0.5rem;
+            height: 400px;
+        }
+        
+        .trajectory-card {
+            background: #ffffff;
+            border: 1px solid #e5e5e7;
+            border-radius: 4px;
+            padding: 0.5rem;
+            transition: border-color 0.2s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .trajectory-card.infected {
+            border-color: #FF3B30;
+        }
+        
+        .trajectory-card.uninfected {
+            border-color: #34C759;
+        }
+        
+        .trajectory-card.fitting {
+            border-color: #FF9500;
+        }
+        
+        .individual-header {
+            text-align: center;
+            margin-bottom: 0.3rem;
+        }
+        
+        .individual-id {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .infection-prob {
+            font-size: 0.6rem;
+            font-weight: 600;
+            padding: 0.1rem 0.3rem;
+            border-radius: 2px;
+            color: white;
+            font-family: 'SF Mono', Monaco, monospace;
+            margin-top: 0.2rem;
+            display: inline-block;
+        }
+        
+        .infection-prob.high {
+            background: #FF3B30;
+        }
+        
+        .infection-prob.medium {
+            background: #FF9500;
+        }
+        
+        .infection-prob.low {
+            background: #34C759;
+        }
+        
+        .individual-plot {
+            flex: 1;
+            background: #fafafa;
+            border: 1px solid #f0f0f0;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 0.3rem;
+        }
+        
+        /* MCMC Progress Panel */
+        .mcmc-panel {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-top: 1rem;
+            border: 1px solid #e5e5e7;
+        }
+        
+        .mcmc-progress-panel {
+            background: #ffffff;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+        }
+        
+        .mcmc-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.8rem;
+        }
+        
+        .mcmc-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .mcmc-status {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .progress-bar {
+            background: #e5e5e7;
+            height: 4px;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 0.8rem;
+        }
+        
+        .progress-fill {
+            background: #007AFF;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .mcmc-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.8rem;
+            font-size: 0.7rem;
+        }
+        
+        .mcmc-stat {
+            text-align: center;
+        }
+        
+        .mcmc-stat-label {
+            display: block;
+            color: #666;
+            margin-bottom: 0.2rem;
+        }
+        
+        .mcmc-stat-value {
+            display: block;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #333;
+        }
+        
+        /* Loading state */
+        .loading {
+            text-align: center;
+            color: #666;
+            margin: 2rem 0;
+            font-size: 1rem;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #e5e5e7;
+            border-radius: 50%;
+            border-top-color: #007AFF;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #fff2f2;
+            border: 1px solid #ffcccc;
+            color: #cc0000;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 1000px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .control-panel {
+                position: static;
+            }
+        }
+        
+        @media (max-width: 800px) {
+            .trajectories-container {
+                grid-template-columns: repeat(5, 1fr);
+                height: 300px;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            body {
+                padding: 15px;
+            }
+            
+            .trajectories-container {
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: repeat(5, 1fr);
+                height: 600px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .header-logo {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .header .description {
+                font-size: 0.9rem;
+                padding: 0 0.5rem;
+            }
+        }
+        
+        /* Data Upload Styles */
+        .data-upload-panel {
+            background: #ffffff;
+            border: 1px solid #e5e5e5;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+        
+        .upload-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .upload-label {
+            cursor: pointer;
+            display: block;
+        }
+        
+        .upload-box {
+            border: 2px dashed #007AFF;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            background: #f0f8ff;
+            transition: all 0.2s ease;
+        }
+        
+        .upload-box:hover {
+            background: #e6f3ff;
+            border-color: #0056b3;
+        }
+        
+        .upload-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .upload-text {
+            font-weight: 600;
+            color: #007AFF;
+            margin-bottom: 0.25rem;
+        }
+        
+        .upload-subtext {
+            font-size: 0.875rem;
+            color: #666;
+        }
+        
+        .upload-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .upload-actions .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            min-width: auto;
+        }
+        
+        .data-info {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background: #e8f5e8;
+            border-radius: 4px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .data-stats {
+            font-weight: 500;
+            color: #155724;
+        }
+        
+        /* Mode Toggle Styles */
+        .mode-toggle {
+            display: flex;
+            gap: 0;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #000000;
+            max-width: 300px;
+        }
+        
+        .mode-btn {
+            flex: 1;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: #ffffff;
+            color: #000000;
+            font-weight: 500;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-right: 1px solid #000000;
+            font-family: 'Avenir', sans-serif;
+        }
+        
+        .mode-btn:last-child {
+            border-right: none;
+        }
+        
+        .mode-btn:hover {
+            background: #f5f5f5;
+        }
+        
+        .mode-btn.active {
+            background: #000000;
+            color: #ffffff;
+        }
+        
+        .mode-btn.active:hover {
+            background: #000000;
+            color: #ffffff;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: #007AFF;
+            border: 1px solid #007AFF;
+        }
+        
+        .btn-outline:hover {
+            background: #007AFF;
+            color: white;
+        }
+        
+        /* Data Limit Notification */
+        .data-limit-notification {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            color: #856404;
+        }
+        
+        .notification-content {
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        /* Simulation Mode Styles */
+        .simulation-section {
+            display: none;
+        }
+        
+        .simulation-parameters {
+            margin-bottom: 1.5rem;
+        }
+        
+        .parameter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .simulation-actions {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .mcmc-parameters {
+            border-top: 1px solid #e5e5e7;
+            padding-top: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .mcmc-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.75rem;
+        }
+        
+        .mcmc-actions {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="serojump_hex.png" alt="SeroJump Logo" class="header-logo">
+        <h1>Interactive widget for <em>serojump</em></h1>
+        <p class="subtitle">Individual Antibody Trajectories with Bayesian Inference</p>
+        <p class="description">A tool to help users understand how <em>serojump</em> infers missed infections using simulated data. Upload your own serological data or generate simulated trajectories to explore infection timing and antibody kinetics through Bayesian analysis. <strong>Note:</strong> <em>serojump</em> is computationally intensive, so this in-browser app may perform poorly on machines with low computational power. We recommend starting with short runs (≤2000 steps) for better performance.</p>
+        <div class="header-links">
+            <p class="paper-reference">
+                Hodgson D, Hay J, Jarju S, Jobe D, Wenlock R, et al. (2025) <em>serojump</em>: A Bayesian tool for inferring infection timing and antibody kinetics from longitudinal serological data. 
+                <a href="https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1013467" target="_blank" rel="noopener noreferrer">PLOS Computational Biology 21(9): e1013467</a>
+            </p>
+            <div class="tool-links">
+                <a href="https://seroanalytics.org/serojump/" target="_blank" rel="noopener noreferrer" class="tool-link"><em>serojump</em> R Package</a>
+                <span class="separator">•</span>
+                <a href="https://seroanalytics.org/" target="_blank" rel="noopener noreferrer" class="tool-link">Other Serological Tools</a>
+            </div>
+        </div>
+    </div>
+    
+    <div id="loading" class="loading">
+        <div class="loading-spinner"></div>
+        Loading module...
+    </div>
+    
+    <div id="error-message" class="error" style="display: none;">
+        <strong>Error:</strong> <span id="error-text"></span>
+    </div>
+    
+    <div id="main-content" style="display: none;">
+        <div class="main-container">
+            <!-- Visualization Area -->
+            <div class="visualization-area">
+                <!-- Data Mode Toggle -->
+                <div class="mode-toggle">
+                    <button id="simulate-mode-btn" class="mode-btn active">Simulate Data</button>
+                    <button id="upload-mode-btn" class="mode-btn">Upload Data</button>
+                </div>
+                
+                <!-- Data Upload Section -->
+                <div class="data-upload-panel">
+                    <div class="section-title">Data Upload</div>
+                    
+                    <!-- Upload Mode Content -->
+                    <div id="upload-mode-content" class="upload-section">
+                        <label for="csv-file" class="upload-label">
+                            <div class="upload-box">
+                                <div class="upload-icon">📁</div>
+                                <div class="upload-text">Upload CSV file</div>
+                                <div class="upload-subtext">Format: person_id, time, biomarker_value</div>
+                            </div>
+                        </label>
+                        <input type="file" id="csv-file" accept=".csv" style="display: none;">
+                        <div class="upload-actions">
+                            <button id="load-csv-btn" class="btn btn-secondary" disabled>Load Data</button>
+                            <button id="clear-data-btn" class="btn btn-secondary" disabled>Clear Data</button>
+                            <button id="download-sample-btn" class="btn btn-outline">Download Sample Data</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Simulation Mode Content -->
+                    <div id="simulation-mode-content" class="simulation-section" style="display: none;">
+                        <div class="simulation-parameters">
+                            <div class="parameter-grid">
+                                <div class="control-group">
+                                    <label class="control-label">Infection Rate</label>
+                                    <input type="range" id="infection-rate" class="slider" min="0.1" max="0.9" step="0.05" value="0.4">
+                                    <div id="infection-rate-value" class="value-display">40%</div>
+                                </div>
+                                
+                                <div class="control-group">
+                                    <label class="control-label">Study Duration</label>
+                                    <input type="range" id="study-duration" class="slider" min="6" max="24" step="1" value="12">
+                                    <div id="study-duration-value" class="value-display">12 months</div>
+                                </div>
+                                
+                                <div class="control-group">
+                                    <label class="control-label">Samples per Individual</label>
+                                    <input type="range" id="samples-per-individual" class="slider" min="3" max="8" step="1" value="5">
+                                    <div id="samples-per-individual-value" class="value-display">5</div>
+                                </div>
+                                
+                                <div class="control-group">
+                                    <label class="control-label">Antibody Boost</label>
+                                    <input type="range" id="antibody-boost" class="slider" min="0.5" max="2.5" step="0.1" value="1.2">
+                                    <div id="antibody-boost-value" class="value-display">1.2</div>
+                                </div>
+                                
+                                <div class="control-group">
+                                    <label class="control-label">Uncertainty (σ)</label>
+                                    <input type="range" id="uncertainty" class="slider" min="0.05" max="0.5" step="0.01" value="0.15">
+                                    <div id="uncertainty-value" class="value-display">0.15</div>
+                                </div>
+                            </div>
+                            
+                            <div class="simulation-actions">
+                                <button id="simulate-data-btn" class="btn btn-primary">Generate Simulated Data</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- MCMC Parameters - Always Visible -->
+                    <div class="mcmc-parameters">
+                        <div class="mcmc-title">MCMC Settings</div>
+                        <div class="parameter-grid">
+                            <div class="control-group">
+                                <label class="control-label">Steps</label>
+                                <input type="range" id="mcmc-steps" class="slider" min="500" max="50000" step="500" value="2000">
+                                <div id="mcmc-steps-value" class="value-display">2000</div>
+                            </div>
+                            
+                            <div class="control-group">
+                                <label class="control-label">Burn-in</label>
+                                <input type="range" id="burnin-steps" class="slider" min="100" max="10000" step="100" value="500">
+                                <div id="burnin-steps-value" class="value-display">500</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mcmc-actions">
+                            <button id="fit-btn" class="btn" disabled>Fit MCMC</button>
+                            <button id="reset-btn" class="btn btn-secondary">Reset</button>
+                        </div>
+                    </div>
+                    
+                    <!-- MCMC Progress Panel -->
+                    <div id="mcmc-panel" class="mcmc-progress-panel" style="display: none;">
+                        <div class="mcmc-header">
+                            <div class="mcmc-title">MCMC Progress</div>
+                            <div class="mcmc-status" id="mcmc-status">Ready</div>
+                        </div>
+                        
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="mcmc-progress-fill"></div>
+                        </div>
+                        
+                        <div class="mcmc-stats">
+                            <div class="mcmc-stat">
+                                <span class="mcmc-stat-label">Step</span>
+                                <span class="mcmc-stat-value" id="mcmc-current-step">0</span>
+                            </div>
+                            <div class="mcmc-stat">
+                                <span class="mcmc-stat-label">Accept %</span>
+                                <span class="mcmc-stat-value" id="mcmc-accept-rate">0</span>
+                            </div>
+                            <div class="mcmc-stat">
+                                <span class="mcmc-stat-label">Log-Lik</span>
+                                <span class="mcmc-stat-value" id="mcmc-log-likelihood">-</span>
+                            </div>
+                            <div class="mcmc-stat">
+                                <span class="mcmc-stat-label">Infected</span>
+                                <span class="mcmc-stat-value" id="mcmc-num-infected">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="data-info" class="data-info" style="display: none;">
+                        <div class="data-stats">
+                            <span id="data-individuals">0</span> individuals, 
+                            <span id="data-points">0</span> data points
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section-title">10 Individuals</div>
+                
+                <div id="trajectories-container" class="trajectories-container">
+                    <!-- Individual trajectory cards will be populated by JavaScript -->
+                </div>
+                
+                
+                <!-- Convergence Diagnostics Panel -->
+                <div id="convergence-panel" class="mcmc-panel" style="display: none;">
+                    <div class="mcmc-header">
+                        <div class="mcmc-title">Convergence Diagnostics</div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                        <!-- Trace Plots -->
+                        <div style="background: #fff; border: 1px solid #e5e5e7; border-radius: 4px; padding: 0.8rem;">
+                            <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem; text-align: center; color: #333;">Parameter Trace Plots</div>
+                            <div id="trace-plots" style="height: 200px;"></div>
+                        </div>
+                        
+                        <!-- Convergence Statistics -->
+                        <div style="background: #fff; border: 1px solid #e5e5e7; border-radius: 4px; padding: 0.8rem;">
+                            <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem; text-align: center; color: #333;">Convergence Statistics</div>
+                            <div id="convergence-stats" style="height: 200px; overflow-y: auto;">
+                                <div style="font-size: 0.7rem; color: #666; text-align: center; margin-top: 50px;">
+                                    Run MCMC to see convergence diagnostics
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <!-- SMI Plot -->
+                        <div style="background: #fff; border: 1px solid #e5e5e7; border-radius: 4px; padding: 0.8rem;">
+                            <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem; text-align: center; color: #333;">SMI (Structural Model Index)</div>
+                            <div id="smi-plot" style="height: 150px;"></div>
+                        </div>
+                        
+                        <!-- Chain Comparison -->
+                        <div style="background: #fff; border: 1px solid #e5e5e7; border-radius: 4px; padding: 0.8rem;">
+                            <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem; text-align: center; color: #333;">Parameter Means by Chain</div>
+                            <div id="chain-comparison" style="height: 150px;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Posterior Analysis Panel -->
+                <div id="posterior-panel" class="mcmc-panel" style="display: none;">
+                    <div class="mcmc-header">
+                        <div class="mcmc-title">Posterior Analysis</div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                        <!-- Total Infections Plot -->
+                        <div style="background: #fff; border: 1px solid #e5e5e7; border-radius: 4px; padding: 0.8rem;">
+                            <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem; text-align: center; color: #333;">Total Number of Infections</div>
+                            <div id="total-infections-plot" style="height: 200px;"></div>
+                        </div>
+                        
+                        <!-- Individual Infection Probabilities Plot -->
+                        <div style="background: #fff; border: 1px solid #e5e5e7; border-radius: 4px; padding: 0.8rem;">
+                            <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem; text-align: center; color: #333;">Individual Infection Probabilities</div>
+                            <div id="individual-probabilities-plot" style="height: 200px;"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <!-- Parameter Densities -->
+                        <div style="background: #fff; border: 1px solid #e5e5e7; border-radius: 4px; padding: 0.8rem;">
+                            <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem; text-align: center; color: #333;">Parameter Posteriors</div>
+                            <div id="posterior-densities" style="height: 200px;"></div>
+                        </div>
+                        
+                        <!-- True vs Inferred Times -->
+                        <div style="background: #fff; border: 1px solid #e5e5e7; border-radius: 4px; padding: 0.8rem;">
+                            <div style="font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem; text-align: center; color: #333;">Timing Accuracy</div>
+                            <div id="timing-comparison" style="height: 200px;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    
+    <!-- Plotly for visualization -->
+    <script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+    
+    <!-- SeroJump WebAssembly Module -->
+    <script src="serojump_module.js"></script>
+    
+    <!-- Main Application -->
+    <script src="serojump-app.js"></script>
+</body>
+</html>
