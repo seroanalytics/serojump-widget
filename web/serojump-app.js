@@ -798,9 +798,25 @@ class SeroJumpApp {
         const thinningInterval = 10; // Only store every 10th sample
         let sampleCount = 0;
         
+        // Plot data limits for performance
+        const maxPlotPoints = 1000; // Maximum points to show in plots
+        const maxTracePoints = 500; // Maximum points per trace
+        
+        // Performance mode for very long runs
+        const performanceMode = mcmcSteps > 10000;
+        const plotUpdateInterval = performanceMode ? 200 : 100; // Less frequent updates for long runs
+        
         // Performance tracking
         const startTime = Date.now();
         let lastProgressTime = startTime;
+        
+        // Helper function to limit array size for performance
+        const limitArraySize = (arr, maxSize) => {
+            if (arr.length > maxSize) {
+                return arr.slice(-maxSize); // Keep only the last maxSize elements
+            }
+            return arr;
+        };
         
         // Run MCMC iterations
         for (let step = 0; step < mcmcSteps; step++) {
@@ -825,8 +841,8 @@ class SeroJumpApp {
                     // Update visualization if past burn-in (use first chain for display)
                     if (step >= burninSteps && chainId === 0) {
                     this.updateIndividualCard(individual, result);
-                    // Update plots only every 200 steps for performance
-                    if (step % 200 === 0) {
+                    // Update plots with performance-aware frequency
+                    if (step % plotUpdateInterval === 0) {
                             this.plotIndividualTrajectory(individual, result);
                         }
                     }
@@ -891,20 +907,48 @@ class SeroJumpApp {
                     combinedPosteriorSamples.boost.push(chain.posteriorSamples.boost[chain.posteriorSamples.boost.length - 1]);
                 }
                 
-                // Update plots every 200 steps (reduced frequency)
-                if (step % 200 === 0) {
-                    this.plotTotalInfections(combinedPosteriorInfectionCounts, trueInfections);
-                    this.plotIndividualProbabilities(combinedIndividualInfectionProbs);
+                // Update plots with performance-aware frequency
+                if (step % plotUpdateInterval === 0) {
+                    // Limit data size for performance
+                    const limitedInfectionCounts = limitArraySize(combinedPosteriorInfectionCounts, maxPlotPoints);
+                    const limitedIndividualProbs = {};
+                    for (const [id, probs] of Object.entries(combinedIndividualInfectionProbs)) {
+                        limitedIndividualProbs[id] = limitArraySize(probs, maxTracePoints);
+                    }
+                    
+                    this.plotTotalInfections(limitedInfectionCounts, trueInfections);
+                    this.plotIndividualProbabilities(limitedIndividualProbs);
                 }
                 
                 // Update convergence diagnostics every 500 steps (reduced frequency)
                 if (step % 500 === 0) {
-                    this.updateConvergenceDiagnostics(chains, step, burninSteps);
+                    // Limit chain data for performance
+                    const limitedChains = chains.map(chain => ({
+                        ...chain,
+                        posteriorSamples: {
+                            baseline: limitArraySize(chain.posteriorSamples.baseline, maxTracePoints),
+                            boost: limitArraySize(chain.posteriorSamples.boost, maxTracePoints),
+                            infectionCounts: limitArraySize(chain.posteriorSamples.infectionCounts, maxTracePoints),
+                            infectionTimes: limitArraySize(chain.posteriorSamples.infectionTimes, maxTracePoints)
+                        },
+                        iterationNumbers: limitArraySize(chain.iterationNumbers, maxTracePoints)
+                    }));
+                    this.updateConvergenceDiagnostics(limitedChains, step, burninSteps);
                 }
                 
                 // Update posterior analysis every 500 steps (reduced frequency)
                 if (step % 500 === 0) {
-                    this.updatePosteriorAnalysis(combinedPosteriorSamples, combinedTimingPosteriorSamples);
+                    // Limit posterior samples for performance
+                    const limitedPosteriorSamples = {
+                        baseline: limitArraySize(combinedPosteriorSamples.baseline, maxTracePoints),
+                        boost: limitArraySize(combinedPosteriorSamples.boost, maxTracePoints),
+                        infectionTimes: limitArraySize(combinedPosteriorSamples.infectionTimes, maxTracePoints)
+                    };
+                    const limitedTimingSamples = {};
+                    for (const [id, times] of Object.entries(combinedTimingPosteriorSamples)) {
+                        limitedTimingSamples[id] = limitArraySize(times, maxTracePoints);
+                    }
+                    this.updatePosteriorAnalysis(limitedPosteriorSamples, limitedTimingSamples);
                 }
             }
             
@@ -912,7 +956,7 @@ class SeroJumpApp {
             sampleCount++;
             
             // Update progress after processing all chains (throttled)
-            if (step % 50 === 0 || step === mcmcSteps - 1) {
+            if (step % 25 === 0 || step === mcmcSteps - 1) {
                 const currentTime = Date.now();
                 const elapsedTime = currentTime - startTime;
                 const stepsPerSecond = (step + 1) / (elapsedTime / 1000);
